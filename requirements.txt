@@ -1,9 +1,10 @@
-opencv-python
-pandas
 numpy
+opencv-python
 matplotlib
 seaborn
-kagglehub
-streamlit
-ipykernel
+scikit-learn
 tensorflow
+keras-tuner
+streamlit
+Pillow
+kaggle
