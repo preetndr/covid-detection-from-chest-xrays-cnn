@@ -10,7 +10,6 @@ st.set_page_config(
     page_title="COVID-19 X-Ray Classifier", page_icon="🫁", layout="centered"
 )
 
-# Initialize a session state key to forcefully reset the file uploader and handle scrolling
 if "file_uploader_key" not in st.session_state:
     st.session_state.file_uploader_key = 0
 if "scroll_to_top" not in st.session_state:
@@ -45,44 +44,69 @@ st.markdown(
         width: 100% !important;
     }
 
-    /* Button Styling */
+    /* --- UNIFIED BUTTON STYLING --- */
+    button, .stButton > button {
+        font-family: 'Plus Jakarta Sans', sans-serif !important;
+    }
+    
+    .element-container:has(.stButton) {
+        width: 100% !important;
+        display: flex !important;
+        justify-content: center !important;
+        margin-top: 18px !important;
+    }
+
+    div.stButton {
+        width: 100% !important;
+        display: flex !important;
+        justify-content: center !important;
+    }
+    
     div.stButton > button {
         position: relative !important;
         display: flex !important;
         align-items: center !important;
         justify-content: center !important;
         width: 100% !important;
-        padding: 14px 20px !important;
+        min-width: 0 !important;
+        padding: 14px 32px !important; /* Reduced by 1px */
         border-radius: 8px !important;
-        background: rgba(9, 132, 158, 0.15) !important;
-        border: 1px solid rgba(9, 132, 158, 0.4) !important;
+        background: rgba(21, 181, 214, 0.15) !important;
+        border: 1px solid rgba(21, 181, 214, 0.4) !important;
         color: #F0EDCC !important;
         backdrop-filter: blur(10px) !important;
         overflow: hidden !important;
         transition: transform 0.45s cubic-bezier(0.16, 1, 0.3, 1), background 0.45s ease, border-color 0.45s ease, box-shadow 0.45s ease !important;
-        box-shadow: 0 0 0 rgba(9, 132, 158, 0), 0 8px 30px rgba(0,0,0,0.18);
-        
+        box-shadow: 0 0 0 rgba(21, 181, 214, 0), 0 8px 30px rgba(0,0,0,0.18);
+    }
+
+    /* Target the inner text exactly like app_2 to prevent Streamlit overrides */
+    div.stButton > button p,
+    div.stButton > button span {
+        margin: 0 !important;
         font-family: 'Plus Jakarta Sans', sans-serif !important;
-        font-size: 10px !important; 
+        font-size: 12px !important; /* Reduced by 1px */
         font-weight: 800 !important;
-        letter-spacing: 0.15em !important;
+        letter-spacing: 0.14em !important;
         text-transform: uppercase !important;
         white-space: nowrap !important;
+        transition: color 0.35s ease !important;
     }
 
     div.stButton > button::before {
         content: "";
         position: absolute;
         inset: -40%;
-        background: radial-gradient(circle at center, rgba(21, 181, 214, 0.4) 0%, rgba(21, 181, 214, 0.1) 30%, transparent 70%);
+        background: radial-gradient(circle at center, rgba(21, 181, 214, 0.25) 0%, rgba(21, 181, 214, 0.1) 30%, transparent 70%);
         opacity: 0;
         transform: translateX(-30%) translateY(10%) scale(0.8);
         transition: opacity 0.6s ease, transform 0.8s cubic-bezier(0.16,1,0.3,1);
         pointer-events: none;
     }
+    
     div.stButton > button:hover {
         transform: translateY(-2px) scale(1.015);
-        background: rgba(21, 181, 214, 0.3) !important;
+        background: rgba(21, 181, 214, 0.2) !important;
         border-color: #15B5D6 !important;
         box-shadow: 0 0 40px rgba(21, 181, 214, 0.3), 0 12px 40px rgba(0,0,0,0.24);
     }
@@ -90,6 +114,13 @@ st.markdown(
         opacity: 1;
         transform: translateX(15%) translateY(-10%) scale(1.15);
     }
+    
+    /* Text turns bright white on hover */
+    div.stButton > button:hover p,
+    div.stButton > button:hover span {
+        color: #FFFFFF !important;
+    }
+    
     div.stButton > button:active {
         transform: translateY(0px) scale(0.985);
     }
@@ -330,11 +361,7 @@ if uploaded_file is None:
         }
 
         upgradeUploader();
-
-        // Setup observer to handle Streamlit DOM refreshes dynamically
-        const observer = new MutationObserver(() => {
-            upgradeUploader();
-        });
+        const observer = new MutationObserver(() => { upgradeUploader(); });
         observer.observe(window.parent.document.body, { childList: true, subtree: true });
         </script>
         """,
@@ -406,7 +433,6 @@ else:
             st.rerun()
 
     # We use position: absolute to place the target exactly 55px below the buttons
-    # Because height is 0px, it does NOT physically push the layout around or break Streamlit's flexbox!
     st.markdown(
         """
         <div style='position: relative; width: 100%; height: 0px;'>
@@ -417,14 +443,12 @@ else:
     )
 
     # Only run the image auto-scroll if we haven't clicked Analyze yet!
-    # This stops the screen from jumping around when the result loads.
     if not analyze_clicked:
         st.components.v1.html(
             """
             <script>
                 const uploadTarget = window.parent.document.querySelector('.upload-reveal');
                 if (uploadTarget) {
-                    // block: 'end' aligns the bottom of our 75px ghost target with the bottom of the viewport
                     uploadTarget.scrollIntoView({ behavior: 'smooth', block: 'end' });
                 }
             </script>
@@ -498,4 +522,43 @@ else:
 
 st.markdown(
     "<div style='height: 1px; margin-bottom: -5px;'></div>", unsafe_allow_html=True
+)
+
+st.components.v1.html(
+    """
+    <script>
+    const doc = window.parent.document;
+    
+    function applyButton3D() {
+        const buttons = doc.querySelectorAll('.stButton > button');
+        buttons.forEach(btn => {
+            if (!btn.dataset.hoverBound) {
+                btn.dataset.hoverBound = "true";
+                btn.addEventListener('mousemove', e => {
+                    const rect = btn.getBoundingClientRect();
+                    const x = e.clientX - rect.left;
+                    const y = e.clientY - rect.top;
+                    
+                    // Calculate shift based on mouse position relative to center
+                    const moveX = (x - rect.width / 2) * 0.04;
+                    const moveY = (y - rect.height / 2) * 0.10;
+                    
+                    btn.style.transform = `translate(${moveX}px, ${moveY - 2}px) scale(1.015)`;
+                });
+                btn.addEventListener('mouseleave', () => {
+                    // Reset styling instantly when mouse leaves
+                    btn.style.transform = '';
+                });
+            }
+        });
+    }
+    
+    // Apply immediately and set up an observer in case Streamlit refreshes the DOM
+    applyButton3D();
+    const observer = new MutationObserver(applyButton3D);
+    observer.observe(doc.body, { childList: true, subtree: true });
+    </script>
+    """,
+    height=0,
+    width=0,
 )
