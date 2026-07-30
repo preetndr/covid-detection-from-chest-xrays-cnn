@@ -143,7 +143,6 @@ except FileNotFoundError:
 except Exception as e:
     load_error = str(e)
 
-
 st.markdown(
     """
     <style>
@@ -181,7 +180,7 @@ st.markdown(
         </h1>
     </div>
     
-    <!-- EXACT physical invisible spacer (Adjusted to 287px) -->
+    <!-- EXACT physical invisible spacer (Set precisely to 287px) -->
     <div class="top-reveal" style="height: 287px; width: 100%; pointer-events: none;"></div>
     
     <!-- Subtitle in normal flow so it scrolls away naturally -->
@@ -210,7 +209,7 @@ if uploaded_file is None:
         st.components.v1.html(
             """
             <script>
-                // Target Streamlit's internal scrolling container directly
+                // Target Streamlit's internal scrolling container directly and force it to 0
                 const stMain = window.parent.document.querySelector('.stMain') || window.parent.document.querySelector('.main');
                 if (stMain) {
                     stMain.scrollTo({ top: 0, behavior: 'smooth' });
@@ -406,19 +405,32 @@ else:
             st.session_state.file_uploader_key += 1
             st.rerun()
 
-    # Invisible target to scroll to immediately when image is uploaded
-    st.markdown("<div class='upload-reveal'></div>", unsafe_allow_html=True)
-    st.components.v1.html(
+    # We use position: absolute to place the target exactly 55px below the buttons
+    # Because height is 0px, it does NOT physically push the layout around or break Streamlit's flexbox!
+    st.markdown(
         """
-        <script>
-            const uploadTarget = window.parent.document.querySelector('.upload-reveal');
-            if (uploadTarget) {
-                uploadTarget.scrollIntoView({ behavior: 'smooth' });
-            }
-        </script>
+        <div style='position: relative; width: 100%; height: 0px;'>
+            <div class='upload-reveal' style='position: absolute; top: 55px; left: 0; width: 1px; height: 1px;'></div>
+        </div>
         """,
-        height=0,
+        unsafe_allow_html=True,
     )
+
+    # Only run the image auto-scroll if we haven't clicked Analyze yet!
+    # This stops the screen from jumping around when the result loads.
+    if not analyze_clicked:
+        st.components.v1.html(
+            """
+            <script>
+                const uploadTarget = window.parent.document.querySelector('.upload-reveal');
+                if (uploadTarget) {
+                    // block: 'end' aligns the bottom of our 75px ghost target with the bottom of the viewport
+                    uploadTarget.scrollIntoView({ behavior: 'smooth', block: 'end' });
+                }
+            </script>
+            """,
+            height=0,
+        )
 
     if analyze_clicked:
         try:
